@@ -5,762 +5,602 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Spyne — Bulk VIN Upload</title>
 <style>
-  :root {
-    --bg: #0f0f0f;
-    --surface: #1a1a1a;
-    --surface2: #222222;
-    --border: #2e2e2e;
-    --border2: #3a3a3a;
-    --text: #f0f0f0;
-    --text2: #999;
-    --text3: #666;
-    --accent: #e8ff47;
-    --accent-dim: rgba(232,255,71,0.12);
-    --accent-text: #1a1a00;
-    --blue: #4fa3ff;
-    --blue-dim: rgba(79,163,255,0.1);
-    --green: #4ade80;
-    --green-dim: rgba(74,222,128,0.1);
-    --red: #f87171;
-    --red-dim: rgba(248,113,113,0.1);
-    --amber: #fbbf24;
-    --amber-dim: rgba(251,191,36,0.1);
-    --radius: 8px;
-    --radius-lg: 12px;
-    --mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    font-size: 14px;
-    line-height: 1.6;
-  }
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+:root {
+  --bg:#0f0f0f; --s1:#1a1a1a; --s2:#222; --s3:#282828;
+  --bd:#2e2e2e; --bd2:#3a3a3a;
+  --tx:#f0f0f0; --tx2:#888; --tx3:#555;
+  --ac:#e8ff47; --ac-bg:rgba(232,255,71,.1); --ac-dk:#1a1a00;
+  --bl:#4fa3ff; --bl-bg:rgba(79,163,255,.1);
+  --gn:#4ade80; --gn-bg:rgba(74,222,128,.1);
+  --rd:#f87171; --rd-bg:rgba(248,113,113,.1);
+  --am:#fbbf24; --am-bg:rgba(251,191,36,.1);
+  --pu:#a78bfa; --pu-bg:rgba(167,139,250,.1);
+  --r:8px; --rl:12px;
+  --mono:'JetBrains Mono','Fira Code','Courier New',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;font-size:14px;line-height:1.6}
+.shell{max-width:860px;margin:0 auto;padding:36px 24px 80px}
 
-  /* ── Layout ── */
-  .shell { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
-  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; }
-  .logo { display: flex; align-items: center; gap: 10px; }
-  .logo-mark { width: 32px; height: 32px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
-  .logo-mark svg { width: 18px; height: 18px; }
-  .logo-name { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; }
-  .logo-sub { font-size: 12px; color: var(--text2); margin-top: 1px; }
-  .badge-env { font-size: 11px; font-family: var(--mono); padding: 3px 10px; border-radius: 20px; background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(251,191,36,0.2); }
+/* Header */
+.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px}
+.logo{display:flex;align-items:center;gap:10px}
+.lm{width:28px;height:28px;background:var(--ac);border-radius:6px;display:grid;place-items:center;flex-shrink:0}
+.lm svg{width:14px;height:14px}
+.ln{font-size:14px;font-weight:600;letter-spacing:-.02em}
+.ls{font-size:11px;color:var(--tx2)}
+.env-pill{font-size:11px;font-family:var(--mono);padding:3px 10px;border-radius:20px;background:var(--am-bg);color:var(--am);border:1px solid rgba(251,191,36,.25);transition:all .2s}
 
-  /* ── Step bar ── */
-  .steps { display: flex; gap: 0; margin-bottom: 36px; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
-  .step { flex: 1; padding: 12px 16px; display: flex; align-items: center; gap: 10px; border-right: 1px solid var(--border); cursor: pointer; transition: background 0.15s; color: var(--text3); background: var(--surface); font-size: 13px; }
-  .step:last-child { border-right: none; }
-  .step:hover { background: var(--surface2); }
-  .step.active { background: var(--surface2); color: var(--text); }
-  .step.done { color: var(--green); }
-  .step-num { width: 22px; height: 22px; border-radius: 50%; border: 1px solid currentColor; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; font-family: var(--mono); }
-  .step.active .step-num { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
-  .step.done .step-num { background: var(--green-dim); border-color: var(--green); }
-  .step-label { white-space: nowrap; font-weight: 500; }
+/* Steps */
+.steps{display:flex;border:1px solid var(--bd);border-radius:var(--rl);overflow:hidden;margin-bottom:28px}
+.step{flex:1;display:flex;align-items:center;gap:8px;padding:10px 14px;border-right:1px solid var(--bd);background:var(--s1);color:var(--tx3);font-size:13px;cursor:pointer;transition:background .15s}
+.step:last-child{border-right:none}
+.step:hover{background:var(--s2)}
+.step.active{background:var(--s2);color:var(--tx)}
+.step.done{color:var(--gn)}
+.sn{width:20px;height:20px;border-radius:50%;border:1px solid currentColor;display:grid;place-items:center;font-size:11px;font-weight:700;flex-shrink:0;font-family:var(--mono)}
+.step.active .sn{background:var(--ac);border-color:var(--ac);color:var(--ac-dk)}
+.step.done .sn{background:var(--gn-bg);border-color:var(--gn)}
 
-  /* ── Panels ── */
-  .panel { display: none; animation: fadeIn 0.2s ease; }
-  .panel.active { display: block; }
-  @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+/* Panels */
+.panel{display:none;animation:fi .18s ease}
+.panel.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
 
-  /* ── Cards & surfaces ── */
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px 24px; margin-bottom: 16px; }
-  .card-title { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+/* Typography */
+.sh{font-size:17px;font-weight:600;letter-spacing:-.02em;margin-bottom:4px}
+.ss{font-size:13px;color:var(--tx2);margin-bottom:20px}
+.ct{font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
 
-  /* ── Upload zone ── */
-  .drop-zone { border: 1.5px dashed var(--border2); border-radius: var(--radius-lg); padding: 40px 24px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; }
-  .drop-zone:hover, .drop-zone.drag { border-color: var(--accent); background: var(--accent-dim); }
-  .drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-  .drop-icon { font-size: 32px; margin-bottom: 12px; }
-  .drop-title { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
-  .drop-sub { font-size: 13px; color: var(--text2); }
+/* Cards */
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--rl);padding:18px 20px;margin-bottom:12px}
 
-  /* ── Inputs ── */
-  input[type=text], input[type=password], select, textarea {
-    background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
-    color: var(--text); font-family: inherit; font-size: 13px; padding: 9px 12px;
-    transition: border-color 0.15s; outline: none; width: 100%;
-  }
-  input[type=text]:focus, input[type=password]:focus, select:focus { border-color: var(--accent); }
-  input[type=text].mono, input[type=password].mono { font-family: var(--mono); font-size: 12px; }
-  select option { background: var(--surface2); }
+/* Form */
+.lbl{display:block;font-size:12px;font-weight:500;color:var(--tx2);margin-bottom:5px}
+input[type=text],input[type=password],select{display:block;width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);color:var(--tx);font-family:inherit;font-size:13px;padding:9px 12px;outline:none;transition:border-color .15s}
+input:focus,select:focus{border-color:var(--ac)}
+.mono-input{font-family:var(--mono) !important;font-size:12px !important}
+.field{margin-bottom:12px}
+.row2{display:flex;gap:12px}
+.row2 .field{flex:1}
 
-  /* ── Buttons ── */
-  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: var(--radius); border: 1px solid var(--border2); background: var(--surface2); color: var(--text); font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
-  .btn:hover { border-color: var(--border2); background: #2a2a2a; }
-  .btn:active { transform: scale(0.98); }
-  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .btn.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); font-weight: 600; }
-  .btn.primary:hover { background: #d4eb2e; }
-  .btn.danger { background: var(--red-dim); color: var(--red); border-color: rgba(248,113,113,0.2); }
-  .btn-row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--r);border:1px solid var(--bd2);background:var(--s2);color:var(--tx);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn:hover{background:#282828}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
+.btn.primary{background:var(--ac);color:var(--ac-dk);border-color:var(--ac);font-weight:600}
+.btn.primary:hover{background:#d4eb2e}
+.btn-row{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
 
-  /* ── Stats ── */
-  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
-  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
-  .stat-num { font-size: 24px; font-weight: 600; color: var(--text); font-family: var(--mono); letter-spacing: -0.03em; }
-  .stat-label { font-size: 11px; color: var(--text2); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
+/* Alerts */
+.alert{border-radius:var(--r);padding:10px 14px;font-size:13px;gap:8px;margin-bottom:12px;display:none;align-items:flex-start}
+.alert.show{display:flex}
+.a-err{background:var(--rd-bg);color:var(--rd);border:1px solid rgba(248,113,113,.2)}
+.a-ok{background:var(--gn-bg);color:var(--gn);border:1px solid rgba(74,222,128,.2)}
+.a-warn{background:var(--am-bg);color:var(--am);border:1px solid rgba(251,191,36,.2)}
+.a-info{background:var(--bl-bg);color:var(--bl);border:1px solid rgba(79,163,255,.2)}
 
-  /* ── Table ── */
-  .table-wrap { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  thead { background: var(--surface); }
-  th { padding: 10px 14px; text-align: left; color: var(--text2); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; border-bottom: 1px solid var(--border); white-space: nowrap; }
-  td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
-  tr:last-child td { border-bottom: none; }
-  tbody tr:hover td { background: var(--surface2); }
+/* Token decode */
+.td-box{display:none;margin-top:10px;padding:10px 14px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);font-size:12px}
+.td-box.show{display:block}
+.td-row{display:flex;gap:8px;margin:2px 0}
+.td-k{color:var(--tx2);min-width:110px}
+.td-v{font-family:var(--mono);color:var(--ac)}
 
-  /* ── Badges ── */
-  .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
-  .badge-blue { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(79,163,255,0.15); }
-  .badge-green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(74,222,128,0.15); }
-  .badge-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(251,191,36,0.15); }
-  .badge-red { background: var(--red-dim); color: var(--red); border: 1px solid rgba(248,113,113,0.15); }
-  .badge-gray { background: rgba(255,255,255,0.05); color: var(--text2); border: 1px solid var(--border); }
-  .badge-accent { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(232,255,71,0.2); }
+/* Drop zone */
+.dz{border:1.5px dashed var(--bd2);border-radius:var(--rl);padding:40px 24px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+.dz:hover,.dz.drag{border-color:var(--ac);background:var(--ac-bg)}
+.dz input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.dz-icon{font-size:30px;margin-bottom:10px}
+.dz-title{font-size:15px;font-weight:500;margin-bottom:4px}
+.dz-sub{font-size:12px;color:var(--tx2)}
 
-  /* ── Filter row ── */
-  .filter-row { display: flex; gap: 8px; margin-bottom: 14px; }
-  .filter-row select { flex: 0 0 auto; width: auto; }
-  .filter-row input { flex: 1; }
+/* Hint / code blocks */
+.hint{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:12px 16px;font-size:12px;color:var(--tx2);line-height:1.8;margin-top:12px}
+.hint strong{color:var(--tx);font-weight:500}
+.tree{font-family:var(--mono);font-size:12px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:14px 16px;line-height:1.9;overflow-x:auto;margin-top:10px}
+code{font-family:var(--mono);font-size:12px;background:var(--s2);border:1px solid var(--bd);padding:1px 6px;border-radius:4px;color:var(--ac)}
+hr{border:none;border-top:1px solid var(--bd);margin:16px 0}
 
-  /* ── Alerts ── */
-  .alert { border-radius: var(--radius); padding: 10px 14px; font-size: 13px; display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
-  .alert-err { background: var(--red-dim); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
-  .alert-ok { background: var(--green-dim); color: var(--green); border: 1px solid rgba(74,222,128,0.2); }
-  .alert-info { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(79,163,255,0.15); }
-  .alert-warn { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(251,191,36,0.2); }
-  .alert { display: none; }
-  .alert.show { display: flex; }
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.stat{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:13px 16px}
+.stn{font-size:22px;font-weight:700;font-family:var(--mono);letter-spacing:-.03em}
+.stl{font-size:11px;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+.stn.ok{color:var(--gn)}
+.stn.warn{color:var(--am)}
 
-  /* ── Mono code ── */
-  code { font-family: var(--mono); font-size: 12px; background: var(--surface2); border: 1px solid var(--border); padding: 1px 6px; border-radius: 4px; color: var(--accent); }
-  .hint-block { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; font-size: 12px; color: var(--text2); line-height: 1.8; margin-top: 14px; }
-  .hint-block strong { color: var(--text); font-weight: 500; }
+/* Tree viewer */
+.tree-viewer{border:1px solid var(--bd);border-radius:var(--rl);overflow:hidden}
+.tree-head{background:var(--s1);padding:9px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--tx2);font-weight:500;text-transform:uppercase;letter-spacing:.07em}
+.tree-body{max-height:420px;overflow-y:auto}
 
-  /* ── CSV format preview ── */
-  .csv-preview { font-family: var(--mono); font-size: 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; line-height: 2; overflow-x: auto; }
-  .csv-header { color: var(--accent); }
-  .csv-row { color: var(--text2); }
+/* Enterprise row */
+.ent-row{border-bottom:1px solid var(--bd)}
+.ent-row:last-child{border-bottom:none}
+.ent-hdr{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;background:var(--s1);transition:background .15s;user-select:none}
+.ent-hdr:hover{background:var(--s2)}
+.ent-icon{font-size:13px;transition:transform .2s;color:var(--tx3);flex-shrink:0}
+.ent-icon.open{transform:rotate(90deg)}
+.ent-name{font-size:13px;font-weight:500;font-family:var(--mono)}
+.ent-badge{margin-left:auto;display:flex;gap:6px}
 
-  /* ── Image attach ── */
-  .vin-img-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); }
-  .vin-img-row:last-child { border-bottom: none; }
-  .vin-pill { font-family: var(--mono); font-size: 11px; background: var(--surface2); border: 1px solid var(--border); padding: 4px 10px; border-radius: 6px; color: var(--text); min-width: 175px; }
-  .vin-meta { font-size: 11px; color: var(--text3); margin-top: 2px; }
-  .img-info { flex: 1; font-size: 12px; color: var(--text2); }
-  .img-count-badge { font-size: 11px; font-family: var(--mono); }
-  .add-img-label { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: var(--radius); border: 1px solid var(--border2); background: var(--surface2); color: var(--text); font-size: 12px; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
-  .add-img-label:hover { border-color: var(--accent); color: var(--accent); }
+/* Team row */
+.team-section{display:none;border-top:1px solid var(--bd)}
+.team-section.open{display:block}
+.team-row{border-bottom:1px solid var(--bd)}
+.team-row:last-child{border-bottom:none}
+.team-hdr{display:flex;align-items:center;gap:10px;padding:9px 14px 9px 30px;cursor:pointer;background:var(--s2);transition:background .15s;user-select:none}
+.team-hdr:hover{background:var(--s3)}
+.team-icon{font-size:12px;transition:transform .2s;color:var(--tx3);flex-shrink:0}
+.team-icon.open{transform:rotate(90deg)}
+.team-name{font-size:12px;font-family:var(--mono);color:var(--tx2)}
+.team-badge{margin-left:auto;display:flex;gap:6px}
 
-  /* ── Progress ── */
-  .progress-wrap { background: var(--surface2); border-radius: 20px; height: 4px; overflow: hidden; margin: 8px 0; }
-  .progress-bar { height: 100%; background: var(--accent); border-radius: 20px; transition: width 0.3s ease; }
-  .progress-header { display: flex; justify-content: space-between; align-items: center; font-size: 12px; margin-bottom: 4px; }
-  .progress-label { color: var(--text2); }
-  .progress-pct { font-family: var(--mono); font-weight: 600; color: var(--text); }
+/* VIN rows */
+.vin-section{display:none;border-top:1px solid var(--bd)}
+.vin-section.open{display:block}
+.vin-item{display:flex;align-items:center;gap:10px;padding:8px 14px 8px 48px;border-bottom:1px solid var(--bd);background:var(--bg)}
+.vin-item:last-child{border-bottom:none}
+.vin-code{font-family:var(--mono);font-size:12px;min-width:180px}
+.vin-imgs{font-size:12px;color:var(--tx2);flex:1}
+.vin-status{margin-left:auto}
 
-  /* ── Log ── */
-  .log-wrap { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; font-family: var(--mono); font-size: 11.5px; line-height: 1.8; max-height: 220px; overflow-y: auto; margin-top: 14px; }
-  .log-line { display: flex; gap: 10px; }
-  .log-time { color: var(--text3); flex-shrink: 0; }
-  .log-ok .log-msg { color: var(--green); }
-  .log-err .log-msg { color: var(--red); }
-  .log-info .log-msg { color: var(--blue); }
-  .log-warn .log-msg { color: var(--amber); }
-  .log-dim .log-msg { color: var(--text2); }
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap}
+.b-bl{background:var(--bl-bg);color:var(--bl);border:1px solid rgba(79,163,255,.15)}
+.b-gn{background:var(--gn-bg);color:var(--gn);border:1px solid rgba(74,222,128,.15)}
+.b-am{background:var(--am-bg);color:var(--am);border:1px solid rgba(251,191,36,.15)}
+.b-rd{background:var(--rd-bg);color:var(--rd);border:1px solid rgba(248,113,113,.2)}
+.b-gy{background:rgba(255,255,255,.05);color:var(--tx2);border:1px solid var(--bd)}
+.b-pu{background:var(--pu-bg);color:var(--pu);border:1px solid rgba(167,139,250,.15)}
 
-  /* ── Token decode ── */
-  .token-decoded { display: none; margin-top: 10px; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); font-size: 12px; }
-  .token-decoded.show { display: block; }
-  .token-field { display: flex; gap: 8px; margin: 3px 0; }
-  .token-key { color: var(--text2); min-width: 110px; }
-  .token-val { font-family: var(--mono); color: var(--accent); }
+/* Progress */
+.pw{background:var(--s2);border-radius:20px;height:4px;overflow:hidden;margin:6px 0}
+.pb{height:100%;background:var(--ac);border-radius:20px;transition:width .3s ease}
+.ph{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+.log{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:10px 14px;font-family:var(--mono);font-size:11.5px;line-height:1.85;max-height:220px;overflow-y:auto;margin-top:12px}
+.ll{display:flex;gap:10px}
+.lt{color:var(--tx3);flex-shrink:0}
+.lok .lm{color:var(--gn)}
+.lerr .lm{color:var(--rd)}
+.linf .lm{color:var(--bl)}
+.lwarn .lm{color:var(--am)}
+.ldim .lm{color:var(--tx2)}
 
-  /* ── Result table ── */
-  .result-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
-
-  /* ── Misc ── */
-  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
-  .section-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; letter-spacing: -0.02em; }
-  .section-sub { font-size: 13px; color: var(--text2); margin-bottom: 20px; }
-  .label { font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 6px; display: block; }
-  .field { margin-bottom: 14px; }
-  .row { display: flex; gap: 12px; }
-  .row .field { flex: 1; }
-  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--accent-text); border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .success-icon { font-size: 48px; text-align: center; margin: 20px 0 12px; }
-  .empty-row td { text-align: center; padding: 32px 16px; color: var(--text3); font-size: 13px; }
+/* Done */
+.done-sc{text-align:center;padding:28px 0 20px}
 </style>
 </head>
 <body>
 <div class="shell">
 
-  <!-- Header -->
-  <div class="header">
-    <div class="logo">
-      <div class="logo-mark">
-        <svg viewBox="0 0 18 18" fill="none">
-          <rect x="2" y="2" width="6" height="6" rx="1" fill="#1a1a00"/>
-          <rect x="10" y="2" width="6" height="6" rx="1" fill="#1a1a00"/>
-          <rect x="2" y="10" width="6" height="6" rx="1" fill="#1a1a00"/>
-          <rect x="10" y="10" width="6" height="6" rx="1" fill="#1a1a00" opacity="0.4"/>
-        </svg>
-      </div>
-      <div>
-        <div class="logo-name">Spyne Bulk Upload</div>
-        <div class="logo-sub">console.spyne.ai</div>
-      </div>
-    </div>
-    <div id="envBadge" class="badge-env">● test environment</div>
+<!-- Header -->
+<div class="hdr">
+  <div class="logo">
+    <div class="lm"><svg viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="5" height="5" rx="1" fill="#1a1a00"/><rect x="8" y="1" width="5" height="5" rx="1" fill="#1a1a00"/><rect x="1" y="8" width="5" height="5" rx="1" fill="#1a1a00"/><rect x="8" y="8" width="5" height="5" rx="1" fill="#1a1a00" opacity=".3"/></svg></div>
+    <div><div class="ln">Spyne Bulk Upload</div><div class="ls">console.spyne.ai</div></div>
   </div>
+  <div class="env-pill" id="envPill">● test</div>
+</div>
 
-  <!-- Step bar -->
-  <div class="steps">
-    <div class="step active" id="s1" onclick="goStep(1)">
-      <div class="step-num" id="sn1">1</div>
-      <span class="step-label">Configure</span>
+<!-- Steps -->
+<div class="steps">
+  <div class="step active" id="s1" onclick="nav(1)"><div class="sn" id="sn1">1</div>Token</div>
+  <div class="step" id="s2" onclick="nav(2)"><div class="sn" id="sn2">2</div>Select folder</div>
+  <div class="step" id="s3" onclick="nav(3)"><div class="sn" id="sn3">3</div>Review</div>
+  <div class="step" id="s4" onclick="nav(4)"><div class="sn" id="sn4">4</div>Upload</div>
+</div>
+
+<!-- ═══ STEP 1: Token ═══ -->
+<div class="panel active" id="p1">
+  <div class="sh">Bearer token</div>
+  <div class="ss">Paste your Spyne authorization token. Select environment once here.</div>
+
+  <div class="card">
+    <div class="field">
+      <label class="lbl">Authorization token</label>
+      <input type="password" id="bearerToken" class="mono-input" placeholder="Paste Bearer token…" oninput="decodeToken(this.value)">
     </div>
-    <div class="step" id="s2" onclick="goStep(2)">
-      <div class="step-num" id="sn2">2</div>
-      <span class="step-label">Upload CSV</span>
-    </div>
-    <div class="step" id="s3" onclick="goStep(3)">
-      <div class="step-num" id="sn3">3</div>
-      <span class="step-label">Review VINs</span>
-    </div>
-    <div class="step" id="s4" onclick="goStep(4)">
-      <div class="step-num" id="sn4">4</div>
-      <span class="step-label">Attach images</span>
-    </div>
-    <div class="step" id="s5" onclick="goStep(5)">
-      <div class="step-num" id="sn5">5</div>
-      <span class="step-label">Submit</span>
+    <div class="td-box" id="tdBox">
+      <div class="td-row"><span class="td-k">enterprise_id</span><span class="td-v" id="td-ent">—</span></div>
+      <div class="td-row"><span class="td-k">team_id</span><span class="td-v" id="td-team">—</span></div>
+      <div class="td-row"><span class="td-k">auth_key</span><span class="td-v" id="td-auth">—</span></div>
     </div>
   </div>
 
-  <!-- ════ STEP 1: Configure ════ -->
-  <div class="panel active" id="p1">
-    <div class="section-title">Configure credentials</div>
-    <div class="section-sub">Enter your Spyne bearer token. Your enterprise and team details will be auto-detected.</div>
+  <div class="card">
+    <label class="lbl">Environment</label>
+    <select id="envSel" onchange="updateEnv()">
+      <option value="test">Test</option>
+      <option value="prod">Production</option>
+    </select>
+  </div>
 
-    <div class="card">
-      <div class="card-title">Bearer token</div>
-      <div class="field">
-        <label class="label">Authorization token</label>
-        <input type="password" id="bearerToken" class="mono" placeholder="Paste your Bearer token here…" oninput="decodeToken(this.value)">
-      </div>
-      <div class="token-decoded" id="tokenDecoded">
-        <div class="token-field"><span class="token-key">enterprise_id</span><span class="token-val" id="td-ent">—</span></div>
-        <div class="token-field"><span class="token-key">team_id</span><span class="token-val" id="td-team">—</span></div>
-        <div class="token-field"><span class="token-key">auth_key</span><span class="token-val" id="td-auth">—</span></div>
-        <div class="token-field"><span class="token-key">device_id</span><span class="token-val" id="td-device">—</span></div>
+  <div class="alert a-err" id="err1">⚠ Bearer token is required.</div>
+  <div class="btn-row"><button class="btn primary" onclick="step1Next()">Continue →</button></div>
+</div>
+
+<!-- ═══ STEP 2: Select folder ═══ -->
+<div class="panel" id="p2">
+  <div class="sh">Select your folder</div>
+  <div class="ss">Select the root folder. The tool reads the structure automatically — no CSV needed.</div>
+
+  <div class="hint" style="margin-bottom:16px">
+    <strong>Required folder structure:</strong>
+    <div class="tree">
+      <div style="color:var(--ac)">📁 YourRootFolder/</div>
+      <div style="color:var(--pu);padding-left:20px">📁 TaD1VC1Ko/  <span style="color:var(--tx3)">← enterprise_id</span></div>
+      <div style="color:var(--bl);padding-left:40px">📁 dfd6464a-b/  <span style="color:var(--tx3)">← team_id</span></div>
+      <div style="color:var(--tx2);padding-left:60px">📁 1FM5K8F80GGB42986/  <span style="color:var(--tx3)">← VIN</span></div>
+      <div style="color:var(--tx3);padding-left:80px">🖼 img1.jpg</div>
+      <div style="color:var(--tx3);padding-left:80px">🖼 img2.jpg</div>
+      <div style="color:var(--tx2);padding-left:60px">📁 1C6RRFJG6MN627703/</div>
+      <div style="color:var(--tx3);padding-left:80px">🖼 img1.jpg</div>
+      <div style="color:var(--pu);padding-left:20px">📁 EnterpriseB/  <span style="color:var(--tx3)">← different enterprise</span></div>
+      <div style="color:var(--bl);padding-left:40px">📁 team-xyz/</div>
+      <div style="color:var(--tx2);padding-left:60px">📁 2T1BURHE0JC034466/</div>
+      <div style="color:var(--tx3);padding-left:80px">🖼 img1.jpg</div>
+    </div>
+    <div style="margin-top:8px">4 levels deep: <code>root/enterprise_id/team_id/VIN/images</code>. Folder names at each level are used as-is in the upload path.</div>
+  </div>
+
+  <div class="dz" id="dz">
+    <input type="file" id="folderInput" webkitdirectory mozdirectory multiple onchange="handleFolder(this.files)">
+    <div class="dz-icon">📁</div>
+    <div class="dz-title">Click to select your root folder</div>
+    <div class="dz-sub">All subfolders will be scanned automatically</div>
+  </div>
+
+  <div class="alert a-ok"   id="folderOk"   style="margin-top:12px">✓ <span id="folderOkMsg"></span></div>
+  <div class="alert a-err"  id="folderErr"  style="margin-top:12px">⚠ <span id="folderErrMsg"></span></div>
+  <div class="alert a-warn" id="folderWarn" style="margin-top:12px">⚠ <span id="folderWarnMsg"></span></div>
+
+  <div class="btn-row">
+    <button class="btn" onclick="nav(1)">← Back</button>
+    <button class="btn primary" onclick="step2Next()">Review →</button>
+  </div>
+</div>
+
+<!-- ═══ STEP 3: Review ═══ -->
+<div class="panel" id="p3">
+  <div class="sh">Review</div>
+  <div class="ss">Expand enterprises and teams to verify what will be uploaded.</div>
+
+  <div class="stats" id="reviewStats">
+    <div class="stat"><div class="stn" id="st-ents">0</div><div class="stl">Enterprises</div></div>
+    <div class="stat"><div class="stn" id="st-teams">0</div><div class="stl">Teams</div></div>
+    <div class="stat"><div class="stn ok" id="st-vins">0</div><div class="stl">VINs</div></div>
+    <div class="stat"><div class="stn" id="st-imgs">0</div><div class="stl">Images</div></div>
+  </div>
+
+  <div class="tree-viewer">
+    <div class="tree-head">
+      <span>Upload tree</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn" style="padding:4px 10px;font-size:11px" onclick="toggleAll(true)">Expand all</button>
+        <button class="btn" style="padding:4px 10px;font-size:11px" onclick="toggleAll(false)">Collapse all</button>
       </div>
     </div>
+    <div class="tree-body" id="treeBody"></div>
+  </div>
 
-    <div class="card">
-      <div class="card-title">Account settings</div>
-      <div class="row">
-        <div class="field">
-          <label class="label">Account ID <span style="color:var(--text3)">(prefix in file paths)</span></label>
-          <input type="text" id="accountId" class="mono" placeholder="e.g. 09d472cd-c057-4f93-9bc9-1bb9d4a251b6">
-        </div>
-        <div class="field" style="flex:0 0 160px">
-          <label class="label">Environment</label>
-          <select id="envSelect" onchange="updateEnvBadge()">
-            <option value="test">Test</option>
-            <option value="prod">Production</option>
-          </select>
-        </div>
-      </div>
-      <div class="hint-block">
-        <strong>Where to find your Account ID:</strong> Open the Spyne console, go to any processed image URL. The path starts with <code>{accountId}_test/…</code> — copy the UUID before <code>_test</code>.
-      </div>
+  <div class="btn-row">
+    <button class="btn" onclick="nav(2)">← Back</button>
+    <button class="btn primary" onclick="nav(4)">Start upload →</button>
+  </div>
+</div>
+
+<!-- ═══ STEP 4: Upload ═══ -->
+<div class="panel" id="p4">
+
+  <div id="uploadView">
+    <div class="sh">Upload</div>
+    <div class="ss">Uploads to Spyne via gen-presigned for each VIN.</div>
+
+    <div class="stats" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat"><div class="stn" id="up-vins">0</div><div class="stl">VINs</div></div>
+      <div class="stat"><div class="stn" id="up-imgs">0</div><div class="stl">Images</div></div>
+      <div class="stat"><div class="stn warn" id="up-skip">0</div><div class="stl">No images (skip)</div></div>
     </div>
 
-    <div id="err-config" class="alert alert-err">⚠ Please fill in all required fields before continuing.</div>
+    <div class="alert a-info show">ℹ Calls <code>gen-presigned</code> per VIN → receives S3 URLs → uploads images directly.</div>
+    <div class="alert a-err" id="upErr">⚠ <span id="upErrMsg"></span></div>
 
-    <div class="btn-row">
-      <button class="btn primary" onclick="validateConfig()">Continue →</button>
+    <div id="progWrap" style="display:none">
+      <div class="ph">
+        <span style="color:var(--tx2)" id="pLabel">Uploading…</span>
+        <span style="font-family:var(--mono);font-weight:700" id="pPct">0%</span>
+      </div>
+      <div class="pw"><div class="pb" id="pBar" style="width:0%"></div></div>
+      <div class="log" id="log"></div>
+    </div>
+
+    <div class="btn-row" id="upBtnRow">
+      <button class="btn" onclick="nav(3)">← Back</button>
+      <button class="btn primary" id="upBtn" onclick="startUpload()">↑ Start upload</button>
     </div>
   </div>
 
-  <!-- ════ STEP 2: Upload CSV ════ -->
-  <div class="panel" id="p2">
-    <div class="section-title">Upload your CSV</div>
-    <div class="section-sub">Provide a CSV with enterprise, team, dealer group, and VIN for each vehicle.</div>
-
-    <div class="drop-zone" id="dropZone"
-      ondragover="event.preventDefault();this.classList.add('drag')"
-      ondragleave="this.classList.remove('drag')"
-      ondrop="handleDrop(event)">
-      <input type="file" accept=".csv" onchange="handleFileInput(this)">
-      <div class="drop-icon">📄</div>
-      <div class="drop-title">Drop CSV here or click to browse</div>
-      <div class="drop-sub">Only .csv files accepted</div>
+  <div id="doneView" style="display:none">
+    <div class="done-sc">
+      <div style="font-size:44px;margin-bottom:12px">✅</div>
+      <div style="font-size:17px;font-weight:600;margin-bottom:6px" id="doneTitle">Upload complete</div>
+      <div style="font-size:13px;color:var(--tx2);margin-bottom:24px" id="doneMsg"></div>
     </div>
-
-    <div id="csvOk" class="alert alert-ok" style="margin-top:12px">
-      ✓ <span id="csvOkMsg">CSV loaded</span>
-    </div>
-    <div id="csvErr" class="alert alert-err" style="margin-top:12px">
-      ⚠ <span id="csvErrMsg">Error</span>
-    </div>
-
-    <div class="hint-block" style="margin-top:14px">
-      <strong>Required columns (in any order):</strong><br>
-      <code>enterprise_id</code> &nbsp; <code>team_id</code> &nbsp; <code>dealer_group</code> &nbsp; <code>vin</code>
-      <div style="margin-top:10px">
-        <div class="csv-preview">
-          <div class="csv-header">enterprise_id,team_id,dealer_group,vin</div>
-          <div class="csv-row">TaD1VC1Ko,dfd6464a-b,Koons_01,1FM5K8F80GGB42986</div>
-          <div class="csv-row">TaD1VC1Ko,dfd6464a-b,Koons_01,1C6RRFJG6MN627703</div>
-          <div class="csv-row">EnterpriseB,team-xyz,Metro_02,2T1BURHE0JC034466</div>
-        </div>
-      </div>
-    </div>
-
-    <hr class="divider">
-    <div style="display:flex;align-items:center;justify-content:space-between">
-      <span style="font-size:13px;color:var(--text2)">Don't have a CSV? Try the sample file.</span>
-      <button class="btn" onclick="loadSample()">⬇ Load sample.csv</button>
-    </div>
-
-    <div class="btn-row">
-      <button class="btn" onclick="goStep(1)">← Back</button>
-      <button class="btn primary" onclick="validateCSV()">Review VINs →</button>
+    <div style="border:1px solid var(--bd);border-radius:var(--rl);overflow:hidden" id="resultsWrap"></div>
+    <div class="btn-row" style="justify-content:center;margin-top:20px">
+      <button class="btn primary" onclick="dlResults()">⬇ Download results CSV</button>
+      <button class="btn" onclick="resetAll()">↺ New upload</button>
     </div>
   </div>
 
-  <!-- ════ STEP 3: Review VINs ════ -->
-  <div class="panel" id="p3">
-    <div class="section-title">Review VINs</div>
-    <div class="section-sub">Verify the loaded data. Filter by enterprise or team, or search by VIN.</div>
-
-    <div class="stats">
-      <div class="stat"><div class="stat-num" id="st-vins">0</div><div class="stat-label">Total VINs</div></div>
-      <div class="stat"><div class="stat-num" id="st-ents">0</div><div class="stat-label">Enterprises</div></div>
-      <div class="stat"><div class="stat-num" id="st-teams">0</div><div class="stat-label">Teams</div></div>
-      <div class="stat"><div class="stat-num" id="st-groups">0</div><div class="stat-label">Dealer groups</div></div>
-    </div>
-
-    <div class="filter-row">
-      <select id="fEnt" onchange="renderTable()" style="width:180px">
-        <option value="">All enterprises</option>
-      </select>
-      <select id="fTeam" onchange="renderTable()" style="width:160px">
-        <option value="">All teams</option>
-      </select>
-      <input type="text" id="fVin" placeholder="🔍  Search VIN…" oninput="renderTable()">
-    </div>
-
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Enterprise</th>
-            <th>Team</th>
-            <th>Dealer group</th>
-            <th>VIN</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="vinTable"></tbody>
-      </table>
-    </div>
-    <div id="tableFooter" style="font-size:12px;color:var(--text3);padding:8px 2px"></div>
-
-    <div class="btn-row">
-      <button class="btn" onclick="goStep(2)">← Back</button>
-      <button class="btn primary" onclick="goStep(4)">Attach images →</button>
-    </div>
-  </div>
-
-  <!-- ════ STEP 4: Attach Images ════ -->
-  <div class="panel" id="p4">
-    <div class="section-title">Attach images</div>
-    <div class="section-sub">Select JPEG/PNG images for each VIN. You can add multiple files per vehicle (exterior, interior, focus shots).</div>
-
-    <div id="err-imgs" class="alert alert-warn">⚠ Some VINs have no images attached. You can proceed, but those VINs will be skipped during upload.</div>
-
-    <div class="card" style="padding:0">
-      <div style="background:var(--surface);padding:10px 16px;border-bottom:1px solid var(--border);border-radius:var(--radius-lg) var(--radius-lg) 0 0;display:grid;grid-template-columns:185px 1fr 100px 90px;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.07em;gap:12px">
-        <span>VIN</span><span>Enterprise / Team</span><span>Images</span><span></span>
-      </div>
-      <div id="imgList" style="padding:0 16px"></div>
-    </div>
-
-    <div class="btn-row">
-      <button class="btn" onclick="goStep(3)">← Back</button>
-      <button class="btn primary" onclick="goStep(5)">Review &amp; submit →</button>
-    </div>
-  </div>
-
-  <!-- ════ STEP 5: Submit ════ -->
-  <div class="panel" id="p5">
-    <div class="section-title">Review &amp; submit</div>
-    <div class="section-sub">Everything looks good? Hit submit to start uploading to Spyne.</div>
-
-    <div class="result-summary" id="submitStats">
-      <div class="stat"><div class="stat-num" id="sub-vins">0</div><div class="stat-label">VINs to upload</div></div>
-      <div class="stat"><div class="stat-num" id="sub-imgs">0</div><div class="stat-label">Total images</div></div>
-      <div class="stat"><div class="stat-num" id="sub-skip">0</div><div class="stat-label">VINs skipped (no images)</div></div>
-    </div>
-
-    <div id="uploadSection">
-      <div id="err-submit" class="alert alert-err">⚠ <span id="submitErrMsg">Error</span></div>
-      <div id="info-submit" class="alert alert-info show">ℹ  Click submit to call <code>gen-presigned</code> for each VIN, then PUT images to the returned S3 presigned URLs.</div>
-
-      <div id="progressWrap" style="display:none">
-        <div class="progress-header">
-          <span class="progress-label" id="progressLabel">Uploading…</span>
-          <span class="progress-pct" id="progressPct">0%</span>
-        </div>
-        <div class="progress-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
-        <div class="log-wrap" id="log"></div>
-      </div>
-    </div>
-
-    <div id="successSection" style="display:none">
-      <div class="success-icon">✅</div>
-      <div style="text-align:center;font-size:16px;font-weight:600;margin-bottom:6px">Upload complete</div>
-      <div style="text-align:center;font-size:13px;color:var(--text2);margin-bottom:24px" id="successMsg">All VINs processed.</div>
-      <div class="table-wrap" id="resultTable"></div>
-      <div class="btn-row" style="justify-content:center;margin-top:20px">
-        <button class="btn primary" onclick="downloadResults()">⬇ Download results CSV</button>
-        <button class="btn" onclick="resetAll()">↺ Start new upload</button>
-      </div>
-    </div>
-
-    <div class="btn-row" id="submitBtnRow">
-      <button class="btn" onclick="goStep(4)">← Back</button>
-      <button class="btn primary" id="submitBtn" onclick="startUpload()">
-        ↑ Start upload
-      </button>
-    </div>
-  </div>
-
+</div>
 </div><!-- /shell -->
 
 <script>
-// ══════════════════════════════════
-//  State
-// ══════════════════════════════════
-let rows = [];
-let imgMap = {};   // vin -> File[]
+// ─── State ───────────────────────────────────────────────────────
+// tree: { [enterpriseId]: { [teamId]: { [vin]: File[] } } }
+let tree = {};
 let results = [];
-let currentStep = 1;
 
-const SAMPLE_CSV = `enterprise_id,team_id,dealer_group,vin
-TaD1VC1Ko,dfd6464a-b,Koons_01,1FM5K8F80GGB42986
-TaD1VC1Ko,dfd6464a-b,Koons_01,1C6RRFJG6MN627703
-TaD1VC1Ko,dfd6464a-b,Koons_01,1C6RR6LG0PS518625
-EnterpriseB,team-xyz,Metro_02,2T1BURHE0JC034466
-EnterpriseC,team-abc,Prestige_03,5YJSA1CN5DFP12345`;
-
-// ══════════════════════════════════
-//  Step navigation
-// ══════════════════════════════════
-function goStep(n) {
-  if (n > 1 && rows.length === 0 && n > 2) return;
-  currentStep = n;
+// ─── Navigation ──────────────────────────────────────────────────
+function nav(n) {
   document.querySelectorAll('.step').forEach((s, i) => {
-    s.classList.remove('active', 'done');
-    const num = s.querySelector('.step-num');
-    if (i + 1 === n) { s.classList.add('active'); num.textContent = i + 1; }
-    else if (i + 1 < n) { s.classList.add('done'); num.innerHTML = '✓'; }
-    else { num.textContent = i + 1; }
+    s.classList.remove('active','done');
+    const sn = s.querySelector('.sn');
+    if (i+1===n)     { s.classList.add('active'); sn.textContent=i+1; }
+    else if (i+1<n)  { s.classList.add('done');   sn.textContent='✓'; }
+    else               sn.textContent=i+1;
   });
-  document.querySelectorAll('.panel').forEach((p, i) => {
-    p.classList.toggle('active', i + 1 === n);
-  });
-  if (n === 3) populateReview();
-  if (n === 4) renderImgList();
-  if (n === 5) renderSubmitSummary();
+  document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i+1===n));
+  if (n===3) renderReview();
+  if (n===4) renderUploadSummary();
 }
 
-// ══════════════════════════════════
-//  Step 1 – Config
-// ══════════════════════════════════
+// ─── Step 1 ──────────────────────────────────────────────────────
 function decodeToken(raw) {
-  const tok = raw.trim().replace(/^Bearer\s+/i, '');
   try {
-    const decoded = JSON.parse(atob(tok));
-    document.getElementById('td-ent').textContent    = decoded.enterprise_id || '—';
-    document.getElementById('td-team').textContent   = decoded.team_id       || '—';
-    document.getElementById('td-auth').textContent   = decoded.authKey       || '—';
-    document.getElementById('td-device').textContent = decoded.deviceId      || '—';
-    document.getElementById('tokenDecoded').classList.add('show');
-  } catch(e) {
-    document.getElementById('tokenDecoded').classList.remove('show');
-  }
+    const d = JSON.parse(atob(raw.trim().replace(/^Bearer\s+/i,'')));
+    st('td-ent', d.enterprise_id||'—');
+    st('td-team', d.team_id||'—');
+    st('td-auth', d.authKey||'—');
+    g('tdBox').classList.add('show');
+  } catch { g('tdBox').classList.remove('show'); }
 }
 
-function updateEnvBadge() {
-  const env = document.getElementById('envSelect').value;
-  const badge = document.getElementById('envBadge');
-  badge.textContent = env === 'prod' ? '● production' : '● test environment';
-  badge.style.background = env === 'prod' ? 'rgba(248,113,113,0.1)' : '';
-  badge.style.color       = env === 'prod' ? 'var(--red)'           : '';
-  badge.style.borderColor = env === 'prod' ? 'rgba(248,113,113,0.2)': '';
+function updateEnv() {
+  const p = g('envPill'), env = g('envSel').value;
+  p.textContent = env==='prod' ? '● production' : '● test';
+  p.style.cssText = env==='prod'
+    ? 'font-size:11px;font-family:var(--mono);padding:3px 10px;border-radius:20px;background:var(--rd-bg);color:var(--rd);border:1px solid rgba(248,113,113,.25);transition:all .2s'
+    : '';
 }
 
-function validateConfig() {
-  const token  = document.getElementById('bearerToken').value.trim();
-  const accId  = document.getElementById('accountId').value.trim();
-  const err    = document.getElementById('err-config');
-  if (!token || !accId) { err.classList.add('show'); return; }
-  err.classList.remove('show');
-  goStep(2);
+function step1Next() {
+  if (!g('bearerToken').value.trim()) { show('err1'); return; }
+  hide('err1'); nav(2);
 }
 
-// ══════════════════════════════════
-//  Step 2 – CSV
-// ══════════════════════════════════
-function handleFileInput(input) {
-  if (input.files[0]) readCSV(input.files[0]);
-}
+// ─── Step 2: Folder picker ────────────────────────────────────────
+function handleFolder(fileList) {
+  hide('folderOk'); hide('folderErr'); hide('folderWarn');
+  const files = Array.from(fileList);
+  if (!files.length) { errSet('folderErrMsg','folderErr','No files found.'); return; }
 
-function handleDrop(e) {
-  e.preventDefault();
-  document.getElementById('dropZone').classList.remove('drag');
-  const file = e.dataTransfer.files[0];
-  if (file) readCSV(file);
-}
+  tree = {};
+  let skipped = 0;
 
-function readCSV(file) {
-  const reader = new FileReader();
-  reader.onload = e => parseAndLoad(e.target.result, file.name);
-  reader.readAsText(file);
-}
+  files.forEach(file => {
+    const rel = file.webkitRelativePath || '';
+    // expected: root/enterprise/team/vin/filename  => parts.length >= 5
+    const parts = rel.split('/');
+    if (parts.length < 5) { skipped++; return; }
+    if (!/\.(jpe?g|png|webp|heic|tiff?)$/i.test(file.name)) return;
 
-function loadSample() {
-  parseAndLoad(SAMPLE_CSV, 'sample.csv');
-}
+    // parts[0] = root folder name (ignored)
+    // parts[1] = enterprise_id
+    // parts[2] = team_id
+    // parts[3] = VIN
+    // parts[4] = filename
+    const [, ent, team, vin] = parts;
+    if (!tree[ent]) tree[ent] = {};
+    if (!tree[ent][team]) tree[ent][team] = {};
+    if (!tree[ent][team][vin]) tree[ent][team][vin] = [];
+    tree[ent][team][vin].push(file);
+  });
 
-function parseAndLoad(text, name) {
-  const okEl  = document.getElementById('csvOk');
-  const errEl = document.getElementById('csvErr');
-  okEl.classList.remove('show');
-  errEl.classList.remove('show');
+  const entCount  = Object.keys(tree).length;
+  const teamCount = Object.values(tree).reduce((a,t) => a+Object.keys(t).length, 0);
+  const vinCount  = Object.values(tree).reduce((a,t) => a+Object.values(t).reduce((b,v)=>b+Object.keys(v).length,0), 0);
+  const imgCount  = Object.values(tree).reduce((a,t) => a+Object.values(t).reduce((b,v)=>b+Object.values(v).reduce((c,imgs)=>c+imgs.length,0),0), 0);
 
-  const lines = text.trim().split(/\r?\n/);
-  const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-  const required = ['enterprise_id', 'team_id', 'dealer_group', 'vin'];
-  const missing = required.filter(r => !headers.includes(r));
-  if (missing.length) {
-    document.getElementById('csvErrMsg').textContent = 'Missing columns: ' + missing.join(', ');
-    errEl.classList.add('show');
+  if (!entCount) {
+    errSet('folderErrMsg','folderErr',
+      'No valid structure found. Make sure your folder is 4 levels deep: enterprise_id / team_id / VIN / images.');
     return;
   }
-  const parsed = lines.slice(1)
-    .map(l => {
-      const vals = l.split(',').map(v => v.trim());
-      const obj = {};
-      headers.forEach((h, i) => obj[h] = vals[i] || '');
-      return obj;
-    })
-    .filter(r => r.vin && r.vin.length > 5);
 
-  if (!parsed.length) {
-    document.getElementById('csvErrMsg').textContent = 'No valid VIN rows found.';
-    errEl.classList.add('show');
-    return;
+  st('folderOkMsg', `Found ${entCount} enterprise(s) · ${teamCount} team(s) · ${vinCount} VINs · ${imgCount} images`);
+  show('folderOk');
+  if (skipped > 0) {
+    st('folderWarnMsg', `${skipped} file(s) were outside the expected structure and ignored.`);
+    show('folderWarn');
   }
-  rows = parsed;
-  imgMap = {};
-  document.getElementById('csvOkMsg').textContent =
-    name + ' — ' + parsed.length + ' VINs across ' +
-    new Set(parsed.map(r => r.enterprise_id)).size + ' enterprise(s) loaded.';
-  okEl.classList.add('show');
 }
 
-function validateCSV() {
-  if (!rows.length) {
-    document.getElementById('csvErrMsg').textContent = 'Please upload a CSV file first.';
-    document.getElementById('csvErr').classList.add('show');
-    return;
-  }
-  goStep(3);
+function step2Next() {
+  if (!Object.keys(tree).length) { errSet('folderErrMsg','folderErr','Please select a folder first.'); return; }
+  nav(3);
 }
 
-// ══════════════════════════════════
-//  Step 3 – Review table
-// ══════════════════════════════════
-function populateReview() {
-  const ents  = [...new Set(rows.map(r => r.enterprise_id))];
-  const teams = [...new Set(rows.map(r => r.team_id))];
-  const grps  = [...new Set(rows.map(r => r.dealer_group))];
+// ─── Step 3: Review tree ──────────────────────────────────────────
+function renderReview() {
+  const ents   = Object.keys(tree);
+  let teamTotal=0, vinTotal=0, imgTotal=0;
+  ents.forEach(e => {
+    Object.keys(tree[e]).forEach(t => {
+      teamTotal++;
+      Object.keys(tree[e][t]).forEach(v => {
+        vinTotal++;
+        imgTotal += tree[e][t][v].length;
+      });
+    });
+  });
+  st('st-ents',  ents.length);
+  st('st-teams', teamTotal);
+  st('st-vins',  vinTotal);
+  st('st-imgs',  imgTotal);
 
-  document.getElementById('st-vins').textContent   = rows.length;
-  document.getElementById('st-ents').textContent   = ents.length;
-  document.getElementById('st-teams').textContent  = teams.length;
-  document.getElementById('st-groups').textContent = grps.length;
+  const body = g('treeBody');
+  body.innerHTML = ents.map(ent => {
+    const teams = Object.keys(tree[ent]);
+    const entVins = teams.reduce((a,t) => a+Object.keys(tree[ent][t]).length, 0);
+    const entImgs = teams.reduce((a,t) => Object.keys(tree[ent][t]).reduce((b,v)=>b+tree[ent][t][v].length, a), 0);
 
-  const fe = document.getElementById('fEnt');
-  const ft = document.getElementById('fTeam');
-  fe.innerHTML = '<option value="">All enterprises</option>' + ents.map(e => `<option>${e}</option>`).join('');
-  ft.innerHTML = '<option value="">All teams</option>'       + teams.map(t => `<option>${t}</option>`).join('');
-  renderTable();
+    const teamsHtml = teams.map(team => {
+      const vins = Object.keys(tree[ent][team]);
+      const teamImgs = vins.reduce((a,v) => a+tree[ent][team][v].length, 0);
+
+      const vinsHtml = vins.map(vin => {
+        const imgs = tree[ent][team][vin];
+        return `<div class="vin-item">
+          <span class="vin-code">${vin}</span>
+          <span class="vin-imgs">${imgs.length} image${imgs.length!==1?'s':''}</span>
+          <span class="vin-status">
+            ${imgs.length ? '<span class="badge b-gn">ready</span>' : '<span class="badge b-am">no images</span>'}
+          </span>
+        </div>`;
+      }).join('');
+
+      const tid = `t-${ent}-${team}`.replace(/[^a-z0-9-]/gi,'_');
+      return `<div class="team-row">
+        <div class="team-hdr" onclick="toggleTeam('${tid}')">
+          <span class="team-icon" id="ti-${tid}">▶</span>
+          <span class="team-name">${team}</span>
+          <div class="team-badge">
+            <span class="badge b-bl">${vins.length} VIN${vins.length!==1?'s':''}</span>
+            <span class="badge b-gy">${teamImgs} imgs</span>
+          </div>
+        </div>
+        <div class="vin-section" id="${tid}">${vinsHtml}</div>
+      </div>`;
+    }).join('');
+
+    const eid = `e-${ent}`.replace(/[^a-z0-9-]/gi,'_');
+    return `<div class="ent-row">
+      <div class="ent-hdr" onclick="toggleEnt('${eid}')">
+        <span class="ent-icon" id="ei-${eid}">▶</span>
+        <span class="ent-name">${ent}</span>
+        <div class="ent-badge">
+          <span class="badge b-pu">${teams.length} team${teams.length!==1?'s':''}</span>
+          <span class="badge b-bl">${entVins} VINs</span>
+          <span class="badge b-gy">${entImgs} imgs</span>
+        </div>
+      </div>
+      <div class="team-section" id="${eid}">${teamsHtml}</div>
+    </div>`;
+  }).join('');
 }
 
-function renderTable() {
-  const fe  = document.getElementById('fEnt').value;
-  const ft  = document.getElementById('fTeam').value;
-  const fv  = document.getElementById('fVin').value.toUpperCase();
-  const filtered = rows.filter(r =>
-    (!fe || r.enterprise_id === fe) &&
-    (!ft || r.team_id === ft) &&
-    (!fv || r.vin.includes(fv))
+function toggleEnt(id) {
+  const sec = g(id), icon = g('ei-'+id);
+  const open = sec.classList.toggle('open');
+  icon.classList.toggle('open', open);
+}
+
+function toggleTeam(id) {
+  const sec = g(id), icon = g('ti-'+id);
+  const open = sec.classList.toggle('open');
+  icon.classList.toggle('open', open);
+}
+
+function toggleAll(expand) {
+  document.querySelectorAll('.team-section').forEach(el => el.classList.toggle('open', expand));
+  document.querySelectorAll('.vin-section').forEach(el => el.classList.toggle('open', expand));
+  document.querySelectorAll('.ent-icon,.team-icon').forEach(el => el.classList.toggle('open', expand));
+}
+
+// ─── Step 4: Upload ───────────────────────────────────────────────
+function renderUploadSummary() {
+  let vinCount=0, imgCount=0, skipCount=0;
+  Object.values(tree).forEach(teams =>
+    Object.values(teams).forEach(vins =>
+      Object.entries(vins).forEach(([,imgs]) => {
+        vinCount++;
+        if (imgs.length) imgCount+=imgs.length; else skipCount++;
+      })
+    )
   );
-  const shown = filtered.slice(0, 100);
-  const tb = document.getElementById('vinTable');
-  if (!shown.length) {
-    tb.innerHTML = '<tr class="empty-row"><td colspan="6">No VINs match the current filter.</td></tr>';
-    document.getElementById('tableFooter').textContent = '';
-    return;
-  }
-  tb.innerHTML = shown.map((r, i) => `
-    <tr>
-      <td style="color:var(--text3);font-family:var(--mono);font-size:11px">${i+1}</td>
-      <td><span class="badge badge-blue">${r.enterprise_id}</span></td>
-      <td style="font-family:var(--mono);font-size:11px;color:var(--text2)">${r.team_id}</td>
-      <td style="font-size:12px">${r.dealer_group}</td>
-      <td style="font-family:var(--mono);font-size:12px;color:var(--text)">${r.vin}</td>
-      <td><span class="badge badge-amber">pending</span></td>
-    </tr>
-  `).join('');
-  const foot = document.getElementById('tableFooter');
-  foot.textContent = filtered.length > 100
-    ? `Showing 100 of ${filtered.length} VINs. Use filters to narrow down.`
-    : `Showing all ${filtered.length} VINs.`;
-}
-
-// ══════════════════════════════════
-//  Step 4 – Attach images
-// ══════════════════════════════════
-function renderImgList() {
-  const list = document.getElementById('imgList');
-  list.innerHTML = rows.map((r, i) => `
-    <div class="vin-img-row" id="imgrow-${i}">
-      <div>
-        <div class="vin-pill">${r.vin}</div>
-        <div class="vin-meta">${r.dealer_group}</div>
-      </div>
-      <div style="flex:1;font-size:12px;color:var(--text2)">
-        <span style="color:var(--text3)">${r.enterprise_id}</span>
-        <span style="color:var(--text3);margin:0 4px">/</span>
-        <span style="color:var(--text3)">${r.team_id}</span>
-      </div>
-      <span class="badge ${(imgMap[r.vin]||[]).length > 0 ? 'badge-green' : 'badge-gray'} img-count-badge" id="ic-${i}">
-        ${(imgMap[r.vin]||[]).length > 0 ? (imgMap[r.vin].length + ' files') : 'no files'}
-      </span>
-      <label class="add-img-label">
-        <input type="file" multiple accept="image/jpeg,image/png,image/webp" style="display:none" onchange="addImages('${r.vin}',${i},this.files)">
-        + add
-      </label>
-    </div>
-  `).join('');
-  checkImgWarning();
-}
-
-function addImages(vin, idx, files) {
-  if (!imgMap[vin]) imgMap[vin] = [];
-  imgMap[vin].push(...Array.from(files));
-  const el = document.getElementById('ic-' + idx);
-  if (el) {
-    el.textContent = imgMap[vin].length + ' files';
-    el.className = 'badge badge-green img-count-badge';
-  }
-  checkImgWarning();
-}
-
-function checkImgWarning() {
-  const noImg = rows.filter(r => !(imgMap[r.vin] || []).length).length;
-  document.getElementById('err-imgs').classList.toggle('show', noImg > 0);
-}
-
-// ══════════════════════════════════
-//  Step 5 – Submit
-// ══════════════════════════════════
-function renderSubmitSummary() {
-  const withImgs = rows.filter(r => (imgMap[r.vin] || []).length > 0);
-  const totalImgs = Object.values(imgMap).reduce((a, v) => a + v.length, 0);
-  const skipped = rows.length - withImgs.length;
-  document.getElementById('sub-vins').textContent  = withImgs.length;
-  document.getElementById('sub-imgs').textContent  = totalImgs;
-  document.getElementById('sub-skip').textContent  = skipped;
-  document.getElementById('successSection').style.display = 'none';
-  document.getElementById('uploadSection').style.display  = 'block';
-  document.getElementById('submitBtnRow').style.display   = 'flex';
-  document.getElementById('progressWrap').style.display   = 'none';
-  document.getElementById('err-submit').classList.remove('show');
+  st('up-vins', vinCount);
+  st('up-imgs', imgCount);
+  st('up-skip', skipCount);
+  hide('upErr');
+  g('progWrap').style.display = 'none';
+  g('uploadView').style.display = 'block';
+  g('doneView').style.display = 'none';
+  g('upBtnRow').style.display = 'flex';
+  g('log').innerHTML = '';
+  g('upBtn').disabled = false;
+  g('upBtn').textContent = '↑ Start upload';
 }
 
 function addLog(msg, type) {
-  const log = document.getElementById('log');
-  const now = new Date().toLocaleTimeString('en-US', { hour12: false, hour:'2-digit', minute:'2-digit', second:'2-digit' });
-  const div = document.createElement('div');
-  div.className = 'log-line log-' + (type || 'dim');
-  div.innerHTML = `<span class="log-time">${now}</span><span class="log-msg">${msg}</span>`;
-  log.appendChild(div);
+  const log = g('log');
+  const t = new Date().toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const d = document.createElement('div');
+  d.className = 'll l'+(type||'dim');
+  d.innerHTML = `<span class="lt">${t}</span><span class="lm">${msg}</span>`;
+  log.appendChild(d);
   log.scrollTop = log.scrollHeight;
 }
 
 async function startUpload() {
-  const token  = document.getElementById('bearerToken').value.trim().replace(/^Bearer\s+/i, '');
-  const accId  = document.getElementById('accountId').value.trim();
-  const env    = document.getElementById('envSelect').value;
-  const envSuffix = env === 'prod' ? '' : '_test';
+  const rawToken = g('bearerToken').value.trim().replace(/^Bearer\s+/i,'');
+  g('upBtn').disabled = true;
+  g('progWrap').style.display = 'block';
+  hide('upErr');
+  results = [];
 
-  const toUpload = rows.filter(r => (imgMap[r.vin] || []).length > 0);
-  if (!toUpload.length) {
-    document.getElementById('submitErrMsg').textContent = 'No VINs have images attached. Go back and add images.';
-    document.getElementById('err-submit').classList.add('show');
+  // Flatten tree into jobs
+  const jobs = [];
+  Object.entries(tree).forEach(([ent, teams]) =>
+    Object.entries(teams).forEach(([team, vins]) =>
+      Object.entries(vins).forEach(([vin, imgs]) => {
+        if (imgs.length) jobs.push({ ent, team, vin, imgs });
+      })
+    )
+  );
+
+  if (!jobs.length) {
+    errSet('upErrMsg','upErr','No images to upload. Check your folder structure.');
+    g('upBtn').disabled = false;
     return;
   }
 
-  document.getElementById('submitBtn').disabled = true;
-  document.getElementById('progressWrap').style.display = 'block';
-  document.getElementById('info-submit').classList.remove('show');
-  document.getElementById('err-submit').classList.remove('show');
-  document.getElementById('log').innerHTML = '';
-  results = [];
+  addLog(`Starting — ${jobs.length} VINs across ${Object.keys(tree).length} enterprise(s)`, 'inf');
 
-  addLog(`Starting upload: ${toUpload.length} VINs, ${Object.values(imgMap).reduce((a,v)=>a+v.length,0)} total images`, 'info');
-
-  let done = 0;
-  const total = toUpload.length;
-
-  for (const row of toUpload) {
-    const files = imgMap[row.vin] || [];
-    const pct = Math.round((done / total) * 100);
-    document.getElementById('progressBar').style.width = pct + '%';
-    document.getElementById('progressPct').textContent = pct + '%';
-    document.getElementById('progressLabel').textContent = `Processing ${row.vin}… (${done+1}/${total})`;
-
-    addLog(`[${row.enterprise_id}] ${row.vin} — ${files.length} image(s)`, 'dim');
+  for (let i = 0; i < jobs.length; i++) {
+    const { ent, team, vin, imgs } = jobs[i];
+    const pct = Math.round(i/jobs.length*100);
+    st('pPct', pct+'%');
+    st('pLabel', `[${ent}/${team}] ${vin} (${i+1}/${jobs.length})`);
+    g('pBar').style.width = pct+'%';
 
     try {
-      // Build imageList for gen-presigned
-      const imageList = files.map(f => ({
-        fileName: `${accId}${envSuffix}/${row.dealer_group}/${row.vin}/${generateFileName(f.name)}`,
+      const imageList = imgs.map(f => ({
+        fileName: `${ent}/${team}/${vin}/${f.name}`,
         fileType: f.type || 'image/jpeg'
       }));
 
-      // Call gen-presigned
-      addLog(`  → Calling gen-presigned for ${row.vin}`, 'dim');
-      const presignRes = await fetch('https://api.spyne.ai/console/v1/util/gen-presigned', {
+      addLog(`→ gen-presigned: ${ent}/${team}/${vin} (${imgs.length} files)`, 'inf');
+
+      const res = await fetch('https://api.spyne.ai/console/v1/util/gen-presigned', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${rawToken}`,
           'Accept': 'application/json, text/plain, */*',
           'Origin': 'https://console.spyne.ai',
           'Referer': 'https://console.spyne.ai/'
@@ -768,122 +608,107 @@ async function startUpload() {
         body: JSON.stringify({ imageList })
       });
 
-      if (!presignRes.ok) {
-        const errText = await presignRes.text();
-        throw new Error(`gen-presigned failed (${presignRes.status}): ${errText.slice(0,100)}`);
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`gen-presigned ${res.status}: ${txt.slice(0,100)}`);
       }
 
-      const presignData = await presignRes.json();
-      // Response: { data: [{ fileName, url }] } or similar
-      const urls = presignData.data || presignData.imageList || presignData || [];
+      const data = await res.json();
+      const urls = data.data || data.imageList || data.result || (Array.isArray(data) ? data : []);
+      if (!urls.length) throw new Error('gen-presigned returned no URLs');
 
-      if (!Array.isArray(urls) || !urls.length) {
-        throw new Error('gen-presigned returned no URLs');
-      }
-
-      // PUT each file to its presigned URL
-      let uploadedCount = 0;
-      for (let i = 0; i < files.length; i++) {
-        const presigned = urls[i];
-        const uploadUrl = presigned.url || presigned.signedUrl || presigned.presignedUrl;
-        if (!uploadUrl) { addLog(`  ⚠ No URL for file ${i+1}`, 'warn'); continue; }
-
-        const putRes = await fetch(uploadUrl, {
+      let uploaded = 0;
+      for (let j = 0; j < imgs.length; j++) {
+        const entry = urls[j];
+        const url = entry?.url || entry?.signedUrl || entry?.presignedUrl || entry?.uploadUrl;
+        if (!url) { addLog(`  ⚠ no URL for ${imgs[j].name}`, 'warn'); continue; }
+        const put = await fetch(url, {
           method: 'PUT',
-          headers: { 'Content-Type': files[i].type || 'image/jpeg' },
-          body: files[i]
+          headers: { 'Content-Type': imgs[j].type || 'image/jpeg' },
+          body: imgs[j]
         });
-        if (!putRes.ok) throw new Error(`S3 upload failed for ${files[i].name} (${putRes.status})`);
-        uploadedCount++;
+        if (!put.ok) throw new Error(`S3 PUT failed: ${imgs[j].name} (${put.status})`);
+        uploaded++;
       }
 
-      addLog(`  ✓ ${row.vin}: ${uploadedCount}/${files.length} images uploaded`, 'ok');
-      results.push({ vin: row.vin, enterprise_id: row.enterprise_id, team_id: row.team_id, dealer_group: row.dealer_group, images: files.length, status: 'success', error: '' });
+      addLog(`✓ ${vin}: ${uploaded}/${imgs.length} uploaded`, 'ok');
+      results.push({ enterprise: ent, team, vin, images: imgs.length, status: 'success', error: '' });
 
     } catch (err) {
-      addLog(`  ✗ ${row.vin}: ${err.message}`, 'err');
-      results.push({ vin: row.vin, enterprise_id: row.enterprise_id, team_id: row.team_id, dealer_group: row.dealer_group, images: files.length, status: 'error', error: err.message });
+      addLog(`✗ ${vin}: ${err.message}`, 'err');
+      results.push({ enterprise: ent, team, vin, images: imgs.length, status: 'error', error: err.message });
     }
-
-    done++;
   }
 
-  // Final
-  document.getElementById('progressBar').style.width = '100%';
-  document.getElementById('progressPct').textContent = '100%';
-  document.getElementById('progressLabel').textContent = 'Upload complete';
+  g('pBar').style.width = '100%';
+  st('pPct', '100%');
+  st('pLabel', 'Done');
 
-  const ok  = results.filter(r => r.status === 'success').length;
-  const err = results.filter(r => r.status === 'error').length;
-  addLog(`Done — ${ok} succeeded, ${err} failed.`, ok === results.length ? 'ok' : 'warn');
-
-  showResults(ok, err);
+  const ok  = results.filter(r => r.status==='success').length;
+  const err = results.filter(r => r.status==='error').length;
+  addLog(`Finished — ${ok} ok, ${err} error(s)`, ok===results.length?'ok':'warn');
+  setTimeout(() => showDone(ok, err), 500);
 }
 
-function showResults(ok, err) {
-  document.getElementById('uploadSection').style.display  = 'none';
-  document.getElementById('submitBtnRow').style.display   = 'none';
-  document.getElementById('successSection').style.display = 'block';
-  document.getElementById('successMsg').textContent =
-    `${ok} VINs uploaded successfully${err ? ', ' + err + ' failed' : ''}.`;
+function showDone(ok, err) {
+  g('uploadView').style.display = 'none';
+  g('upBtnRow').style.display = 'none';
+  g('doneView').style.display = 'block';
+  st('doneTitle', err===0 ? 'Upload complete 🎉' : `Done — ${err} error(s)`);
+  st('doneMsg', `${ok} VINs uploaded successfully${err ? ', '+err+' failed' : ''}.`);
 
-  const table = document.getElementById('resultTable');
-  table.innerHTML = `
-    <table>
-      <thead><tr>
-        <th>VIN</th><th>Enterprise</th><th>Dealer group</th><th>Images</th><th>Status</th>
-      </tr></thead>
+  g('resultsWrap').innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead style="background:var(--s1)">
+        <tr>
+          <th style="padding:9px 14px;text-align:left;color:var(--tx2);font-size:11px;text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid var(--bd)">Enterprise</th>
+          <th style="padding:9px 14px;text-align:left;color:var(--tx2);font-size:11px;text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid var(--bd)">Team</th>
+          <th style="padding:9px 14px;text-align:left;color:var(--tx2);font-size:11px;text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid var(--bd)">VIN</th>
+          <th style="padding:9px 14px;text-align:left;color:var(--tx2);font-size:11px;text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid var(--bd)">Images</th>
+          <th style="padding:9px 14px;text-align:left;color:var(--tx2);font-size:11px;text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid var(--bd)">Status</th>
+        </tr>
+      </thead>
       <tbody>
-        ${results.map(r => `
-          <tr>
-            <td style="font-family:var(--mono);font-size:12px">${r.vin}</td>
-            <td><span class="badge badge-blue">${r.enterprise_id}</span></td>
-            <td style="font-size:12px">${r.dealer_group}</td>
-            <td style="font-family:var(--mono);font-size:12px">${r.images}</td>
-            <td>${r.status === 'success'
-              ? '<span class="badge badge-green">✓ uploaded</span>'
-              : `<span class="badge badge-red" title="${r.error}">✗ failed</span>`
-            }</td>
-          </tr>
-        `).join('')}
+        ${results.map(r => `<tr>
+          <td style="padding:9px 14px;border-bottom:1px solid var(--bd);font-family:var(--mono);font-size:11px;color:var(--pu)">${r.enterprise}</td>
+          <td style="padding:9px 14px;border-bottom:1px solid var(--bd);font-family:var(--mono);font-size:11px;color:var(--bl)">${r.team}</td>
+          <td style="padding:9px 14px;border-bottom:1px solid var(--bd);font-family:var(--mono);font-size:12px">${r.vin}</td>
+          <td style="padding:9px 14px;border-bottom:1px solid var(--bd);font-family:var(--mono);font-size:12px">${r.images}</td>
+          <td style="padding:9px 14px;border-bottom:1px solid var(--bd)">
+            ${r.status==='success'
+              ? '<span class="badge b-gn">✓ uploaded</span>'
+              : `<span class="badge b-rd" title="${r.error}">✗ error</span>`}
+          </td>
+        </tr>`).join('')}
       </tbody>
-    </table>
-  `;
+    </table>`;
 }
 
-function downloadResults() {
-  const csv = [
-    'vin,enterprise_id,team_id,dealer_group,images,status,error',
-    ...results.map(r =>
-      [r.vin, r.enterprise_id, r.team_id, r.dealer_group, r.images, r.status, `"${r.error}"`].join(',')
-    )
+function dlResults() {
+  const rows = [
+    'enterprise,team,vin,images,status,error',
+    ...results.map(r => `${r.enterprise},${r.team},${r.vin},${r.images},${r.status},"${r.error}"`)
   ].join('\n');
-  const blob = new Blob([csv], { type: 'text/csv' });
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'upload-results-' + new Date().toISOString().slice(0, 10) + '.csv';
+  a.href = URL.createObjectURL(new Blob([rows],{type:'text/csv'}));
+  a.download = 'upload-results-'+new Date().toISOString().slice(0,10)+'.csv';
   a.click();
 }
 
 function resetAll() {
-  rows = []; imgMap = {}; results = [];
-  document.getElementById('bearerToken').value = '';
-  document.getElementById('accountId').value = '';
-  document.getElementById('tokenDecoded').classList.remove('show');
-  document.getElementById('csvOk').classList.remove('show');
-  document.getElementById('csvErr').classList.remove('show');
-  goStep(1);
+  tree = {}; results = [];
+  g('bearerToken').value = '';
+  g('tdBox').classList.remove('show');
+  ['folderOk','folderErr','folderWarn','err1','upErr'].forEach(hide);
+  nav(1);
 }
 
-// ══════════════════════════════════
-//  Utilities
-// ══════════════════════════════════
-function generateFileName(originalName) {
-  const ext = originalName.split('.').pop() || 'jpg';
-  const hash = Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10);
-  const ts   = Date.now().toString(36);
-  return `upload_${ts}_${hash}x.${ext}`;
-}
+// ─── Helpers ─────────────────────────────────────────────────────
+const g   = id => document.getElementById(id);
+const st  = (id, v) => g(id).textContent = v;
+const show = id => g(id).classList.add('show');
+const hide = id => g(id).classList.remove('show');
+const errSet = (mid, aid, msg) => { st(mid, msg); show(aid); };
 </script>
 </body>
 </html>
